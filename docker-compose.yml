@@ -1,0 +1,25 @@
+services:
+  portal-frontend:
+    build:
+      context: ./frontend
+    container_name: portal-frontend
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+
+  portal-api:
+    build:
+      context: ../portal-api
+    container_name: portal-api
+    restart: unless-stopped
+    network_mode: host
+    user: root
+    environment:
+      - ADMIN_KEY=${ADMIN_KEY:-changeme}
+      - DATA_DIR=/app/data
+      - CONTENT_FILE=/app/data/content.json
+    volumes:
+      - ../portal-api/data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/data:/mnt/data:ro
+      - /mnt/backupshare:/mnt/backupshare:ro

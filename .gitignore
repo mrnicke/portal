@@ -1,0 +1,39 @@
+# Node / React / Vite
+node_modules/
+dist/
+build/
+.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# Env-filer med hemligheter
+.env
+*.env
+.env.local
+.env.*.local
+
+# API-data (dynamiskt content, ska inte versioneras)
+portal-api/data/
+
+# Docker-relaterad data
+docker-data/
+*.pid
+
+# Loggar
+logs/
+*.log
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+
+# Misc
+*.swp
+*.swo
