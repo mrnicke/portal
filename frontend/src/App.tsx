@@ -356,7 +356,7 @@ const App: React.FC = () => {
   const [savingContent, setSavingContent] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
-  const [showAdmin, setShowAdmin] = useState(false);
+  const [isAdminView, setIsAdminView] = useState(false);
   const [dragItem, setDragItem] = useState<{
     type: "quickAction" | "service" | "section" | "serviceGroup";
     groupIndex?: number;
@@ -536,6 +536,9 @@ const App: React.FC = () => {
     apps: "Apps",
     events: "Recent events",
   };
+
+  const goToAdmin = () => setIsAdminView(true);
+  const goToHome = () => setIsAdminView(false);
 
   const handleQuickActionChange = (
     index: number,
@@ -729,12 +732,6 @@ const App: React.FC = () => {
                 {badge}
               </span>
             ))}
-            <button
-              className="px-2 py-1 rounded-full border border-slate-700 hover:border-emerald-400 transition"
-              onClick={() => setShowAdmin((v) => !v)}
-            >
-              {showAdmin ? "Dölj admin" : "Admin"}
-            </button>
             <div className="h-8 w-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold">
               NK
             </div>
@@ -754,6 +751,14 @@ const App: React.FC = () => {
               key={item.href}
               href={item.href}
               className="px-3 py-1.5 rounded-full border border-slate-800 bg-slate-900/50 text-slate-200 hover:border-emerald-400 transition whitespace-nowrap"
+              onClick={(e) => {
+                if (item.label === "Admin") {
+                  e.preventDefault();
+                  goToAdmin();
+                } else {
+                  goToHome();
+                }
+              }}
             >
               {item.label}
             </a>
@@ -768,221 +773,223 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {sectionOrder.map((sectionId) => {
-          if (sectionId === "status") {
-            return (
-              <section id="status" key="status" className="mt-6">
-                <LiveStatusCard />
-              </section>
-            );
-          }
+        {!isAdminView &&
+          sectionOrder.map((sectionId) => {
+            if (sectionId === "status") {
+              return (
+                <section id="status" key="status" className="mt-6">
+                  <LiveStatusCard />
+                </section>
+              );
+            }
 
-          if (sectionId === "actions") {
-            return (
-              <section id="actions" key="actions" className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">Quick actions</h2>
-                    <p className="text-sm text-slate-400">
-                      Genvägar för drift: restart, loggar, dashboards.
-                    </p>
-                  </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {(content.quickActions || []).map((action) => (
-                    <a
-                      key={action.title + action.href}
-                      href={action.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 hover:border-emerald-400/60 hover:-translate-y-1 transition transform"
-                    >
-                      <div className="text-sm font-semibold">{action.title}</div>
-                      <div className="text-sm text-slate-400 mt-1">{action.desc}</div>
-                    </a>
-                  ))}
-                  {(content.quickActions || []).length === 0 && (
-                    <div className="text-sm text-slate-400">
-                      Inga åtgärder definierade ännu.
-                    </div>
-                  )}
-                </div>
-              </section>
-            );
-          }
-
-          if (sectionId === "widgets") {
-            return (
-              <section id="widgets" key="widgets" className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">Live widgets</h2>
-                    <p className="text-sm text-slate-400">Snabbstatus + HA / Pi-hole genvägar.</p>
-                  </div>
-                  <div className="text-[11px] text-slate-500">
-                    Senast uppdaterad: {lastUpdatedText}
-                  </div>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-3 flex flex-col gap-2">
-                    <div className="text-[11px] text-slate-400 uppercase">CONTAINERS UP</div>
-                    <div className="text-xl font-semibold">{containersText}</div>
-                    <div className="text-[11px] text-slate-500">Via Docker / Portainer</div>
-                  </div>
-
-                  <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-3 flex flex-col gap-2">
-                    <div className="text-[11px] text-slate-400 uppercase">DISK /</div>
-                    <div className="text-xl font-semibold">
-                      {formatPercent(status.diskRoot.percent)}
-                    </div>
-                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-400"
-                        style={{ width: `${status.diskRoot.percent ?? 0}%` }}
-                      />
-                    </div>
-                    <div className="text-[11px] text-slate-500">{formatStorage(status.diskRoot)}</div>
-                  </div>
-
-                  <a
-                    href="http://192.168.2.174:8123"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex items-center justify-between hover:border-emerald-400/60 transition"
-                  >
+            if (sectionId === "actions") {
+              return (
+                <section id="actions" key="actions" className="space-y-3">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-xs text-slate-400 uppercase">Home Assistant</div>
-                      <div className="text-sm text-slate-100">Öppna UI</div>
+                      <h2 className="text-lg font-semibold">Quick actions</h2>
+                      <p className="text-sm text-slate-400">
+                        Genvägar för drift: restart, loggar, dashboards.
+                      </p>
                     </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full border border-emerald-500/60 text-emerald-200">
-                      Öppna
-                    </span>
-                  </a>
-
-                  <a
-                    href="http://192.168.2.174/admin"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex items-center justify-between hover:border-emerald-400/60 transition"
-                  >
-                    <div>
-                      <div className="text-xs text-slate-400 uppercase">Pi-hole</div>
-                      <div className="text-sm text-slate-100">DNS-filter & statistik</div>
-                    </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full border border-emerald-500/60 text-emerald-200">
-                      Öppna
-                    </span>
-                  </a>
-                </div>
-              </section>
-            );
-          }
-
-          if (sectionId === "apps") {
-            return (
-              <section id="apps" key="apps" className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">Apps</h2>
-                    <p className="text-sm text-slate-400">Alla portaler och UI:er i labbet.</p>
                   </div>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {servicesFlattened.map((svc) => (
-                    <a
-                      key={svc.name + svc.url}
-                      href={svc.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex flex-col gap-1 hover:border-emerald-400/60 transition"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="font-semibold">{svc.name}</div>
-                        <div className="flex items-center gap-1">
-                          {svc.group && (
-                            <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
-                              {svc.group}
-                            </span>
-                          )}
-                          {svc.tag && (
-                            <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
-                              {svc.tag}
-                            </span>
-                          )}
-                        </div>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {(content.quickActions || []).map((action) => (
+                      <a
+                        key={action.title + action.href}
+                        href={action.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 hover:border-emerald-400/60 hover:-translate-y-1 transition transform"
+                      >
+                        <div className="text-sm font-semibold">{action.title}</div>
+                        <div className="text-sm text-slate-400 mt-1">{action.desc}</div>
+                      </a>
+                    ))}
+                    {(content.quickActions || []).length === 0 && (
+                      <div className="text-sm text-slate-400">
+                        Inga åtgärder definierade ännu.
                       </div>
-                      <div className="text-sm text-slate-400">{svc.description}</div>
-                      <div className="text-[11px] text-emerald-300 opacity-80 pt-1">Öppna →</div>
-                    </a>
-                  ))}
-                  {servicesFlattened.length === 0 && (
-                    <div className="text-sm text-slate-400">Inga tjänster konfigurerade ännu.</div>
-                  )}
-                </div>
-              </section>
-            );
-          }
+                    )}
+                  </div>
+                </section>
+              );
+            }
 
-          if (sectionId === "events") {
-            return (
-              <section id="events" key="events" className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">Recent events</h2>
-                    <p className="text-sm text-slate-400">Senaste containerstatus och uppstarter.</p>
+            if (sectionId === "widgets") {
+              return (
+                <section id="widgets" key="widgets" className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold">Live widgets</h2>
+                      <p className="text-sm text-slate-400">Snabbstatus + HA / Pi-hole genvägar.</p>
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      Senast uppdaterad: {lastUpdatedText}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-[11px]">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${
-                        isContainersError
-                          ? "border-red-500/70 text-red-300"
-                          : isContainersLoading
-                          ? "border-slate-500/70 text-slate-300"
-                          : "border-emerald-500/70 text-emerald-300"
-                      }`}
-                    >
-                      <span className="h-2 w-2 rounded-full bg-current" />
-                      {isContainersError
-                        ? "API offline"
-                        : isContainersLoading
-                        ? "Laddar..."
-                        : "Online"}
-                    </span>
-                    <span className="text-slate-500">Senast: {containersUpdatedText}</span>
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-2">
-                  {(containers || []).slice(0, 6).map((c) => (
-                    <div
-                      key={c.id}
-                      className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2"
+
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-3 flex flex-col gap-2">
+                      <div className="text-[11px] text-slate-400 uppercase">CONTAINERS UP</div>
+                      <div className="text-xl font-semibold">{containersText}</div>
+                      <div className="text-[11px] text-slate-500">Via Docker / Portainer</div>
+                    </div>
+
+                    <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-3 flex flex-col gap-2">
+                      <div className="text-[11px] text-slate-400 uppercase">DISK /</div>
+                      <div className="text-xl font-semibold">
+                        {formatPercent(status.diskRoot.percent)}
+                      </div>
+                      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-400"
+                          style={{ width: `${status.diskRoot.percent ?? 0}%` }}
+                        />
+                      </div>
+                      <div className="text-[11px] text-slate-500">{formatStorage(status.diskRoot)}</div>
+                    </div>
+
+                    <a
+                      href="http://192.168.2.174:8123"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex items-center justify-between hover:border-emerald-400/60 transition"
                     >
                       <div>
-                        <div className="font-semibold">{c.name}</div>
-                        <div className="text-xs text-slate-400 truncate">{c.status || "Ingen status"}</div>
+                        <div className="text-xs text-slate-400 uppercase">Home Assistant</div>
+                        <div className="text-sm text-slate-100">Öppna UI</div>
                       </div>
-                      <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full border ${containerStateClass(
-                          c.state
-                        )}`}
-                      >
-                        {containerStateLabel(c.state)}
+                      <span className="text-[11px] px-2 py-0.5 rounded-full border border-emerald-500/60 text-emerald-200">
+                        Öppna
                       </span>
-                    </div>
-                  ))}
-                  {(!containers || containers.length === 0) && (
-                    <div className="text-sm text-slate-400">Inga events ännu.</div>
-                  )}
-                </div>
-              </section>
-            );
-          }
+                    </a>
 
-          return null;
-        })}
+                    <a
+                      href="http://192.168.2.174/admin"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex items-center justify-between hover:border-emerald-400/60 transition"
+                    >
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase">Pi-hole</div>
+                        <div className="text-sm text-slate-100">DNS-filter & statistik</div>
+                      </div>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full border border-emerald-500/60 text-emerald-200">
+                        Öppna
+                      </span>
+                    </a>
+                  </div>
+                </section>
+              );
+            }
+
+            if (sectionId === "apps") {
+              return (
+                <section id="apps" key="apps" className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold">Apps</h2>
+                      <p className="text-sm text-slate-400">Alla portaler och UI:er i labbet.</p>
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {servicesFlattened.map((svc) => (
+                      <a
+                        key={svc.name + svc.url}
+                        href={svc.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 flex flex-col gap-1 hover:border-emerald-400/60 transition"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-semibold">{svc.name}</div>
+                          <div className="flex items-center gap-1">
+                            {svc.group && (
+                              <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                                {svc.group}
+                              </span>
+                            )}
+                            {svc.tag && (
+                              <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                                {svc.tag}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-sm text-slate-400">{svc.description}</div>
+                        <div className="text-[11px] text-emerald-300 opacity-80 pt-1">Öppna →</div>
+                      </a>
+                    ))}
+                    {servicesFlattened.length === 0 && (
+                      <div className="text-sm text-slate-400">Inga tjänster konfigurerade ännu.</div>
+                    )}
+                  </div>
+                </section>
+              );
+            }
+
+            if (sectionId === "events") {
+              return (
+                <section id="events" key="events" className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold">Recent events</h2>
+                      <p className="text-sm text-slate-400">Senaste containerstatus och uppstarter.</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border ${
+                          isContainersError
+                            ? "border-red-500/70 text-red-300"
+                            : isContainersLoading
+                            ? "border-slate-500/70 text-slate-300"
+                            : "border-emerald-500/70 text-emerald-300"
+                        }`}
+                      >
+                        <span className="h-2 w-2 rounded-full bg-current" />
+                        {isContainersError
+                          ? "API offline"
+                          : isContainersLoading
+                          ? "Laddar..."
+                          : "Online"}
+                      </span>
+                      <span className="text-slate-500">Senast: {containersUpdatedText}</span>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 space-y-2">
+                    {(containers || []).slice(0, 6).map((c) => (
+                      <div
+                        key={c.id}
+                        className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2"
+                      >
+                        <div>
+                          <div className="font-semibold">{c.name}</div>
+                          <div className="text-xs text-slate-400 truncate">{c.status || "Ingen status"}</div>
+                        </div>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full border ${containerStateClass(
+                            c.state
+                          )}`}
+                        >
+                          {containerStateLabel(c.state)}
+                        </span>
+                      </div>
+                    ))}
+                    {(!containers || containers.length === 0) && (
+                      <div className="text-sm text-slate-400">Inga events ännu.</div>
+                    )}
+                  </div>
+                </section>
+              );
+            }
+
+            return null;
+          })}
 
         {/* ADMIN SETTINGS */}
+        {isAdminView && (
         <section id="admin" className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -991,7 +998,13 @@ const App: React.FC = () => {
                 Uppdatera länkar, API:er och kort. Sparning kräver admin-nyckel (x-admin-key).
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <button
+                className="px-3 py-1.5 rounded-full border border-slate-700 hover:border-emerald-400 transition text-sm"
+                onClick={goToHome}
+              >
+                Tillbaka till startsidan
+              </button>
               <button
                 className="px-3 py-1.5 rounded-full border border-slate-700 hover:border-emerald-400 transition text-sm"
                 onClick={reload}
@@ -1316,6 +1329,7 @@ const App: React.FC = () => {
             </div>
           </div>
         </section>
+        )}
       </main>
 
       {/* Footer */}
